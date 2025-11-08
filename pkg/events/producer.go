@@ -28,12 +28,13 @@ func NewProducer(cfg *Config, logger *observability.Logger) (*Producer, error) {
 
 	kafkaConfig := cfg.GetProducerConfig()
 
-	producer, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": kafkaConfig["bootstrap.servers"],
-		"client.id":         kafkaConfig["client.id"],
-		"acks":              kafkaConfig["acks"],
-		"compression.type":  kafkaConfig["compression.type"],
-	})
+	// Create Kafka config map with all producer settings
+	configMap := &kafka.ConfigMap{}
+	for key, value := range kafkaConfig {
+		configMap.SetKey(key, value)
+	}
+
+	producer, err := kafka.NewProducer(configMap)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create producer: %w", err)
 	}

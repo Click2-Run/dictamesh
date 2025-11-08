@@ -187,6 +187,7 @@ type ConsumerWithDLQ struct {
 	maxRetries  int
 	retryDelay  time.Duration
 	retryCounts map[string]int // event ID -> retry count
+	userHandler EventHandler   // original user handler
 }
 
 // NewConsumerWithDLQ creates a consumer with dead letter queue support
@@ -203,27 +204,38 @@ func NewConsumerWithDLQ(
 		return nil, fmt.Errorf("failed to create DLQ: %w", err)
 	}
 
-	// Wrap the handler with retry logic
-	wrappedHandler := func(ctx context.Context, event *Event) error {
-		return handler(ctx, event)
-	}
-
-	// Create consumer
-	consumer, err := NewConsumer(cfg, logger, wrappedHandler)
-	if err != nil {
-		dlq.Close()
-		return nil, fmt.Errorf("failed to create consumer: %w", err)
-	}
-
-	return &ConsumerWithDLQ{
-		consumer:    consumer,
+	// Create the ConsumerWithDLQ struct first (without consumer)
+	cwdlq := &ConsumerWithDLQ{
 		dlq:         dlq,
 		config:      cfg,
 		logger:      logger,
 		maxRetries:  maxRetries,
 		retryDelay:  retryDelay,
 		retryCounts: make(map[string]int),
-	}, nil
+		userHandler: handler,
+	}
+
+	// Now create a wrapped handler that uses the ConsumerWithDLQ instance
+	wrappedHandler := func(ctx context.Context, event *Event) error {
+		// Extract topic from event metadata (will be added by consumer)
+		topic := event.Metadata["_kafka_topic"]
+		if topic == "" {
+			topic = "unknown"
+		}
+		return cwdlq.handleEventWithRetry(ctx, event, cwdlq.userHandler, topic)
+	}
+
+	// Create consumer with wrapped handler
+	consumer, err := NewConsumer(cfg, logger, wrappedHandler)
+	if err != nil {
+		dlq.Close()
+		return nil, fmt.Errorf("failed to create consumer: %w", err)
+	}
+
+	// Set the consumer
+	cwdlq.consumer = consumer
+
+	return cwdlq, nil
 }
 
 // Subscribe subscribes to topics

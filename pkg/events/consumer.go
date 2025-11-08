@@ -11,6 +11,7 @@ import (
 
 	"github.com/click2-run/dictamesh/pkg/observability"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"go.opentelemetry.io/otel"
 )
 
 // EventHandler processes consumed events
@@ -33,13 +34,13 @@ func NewConsumer(cfg *Config, logger *observability.Logger, handler EventHandler
 
 	kafkaConfig := cfg.GetConsumerConfig()
 
-	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
-		"bootstrap.servers": kafkaConfig["bootstrap.servers"],
-		"group.id":          kafkaConfig["group.id"],
-		"client.id":         kafkaConfig["client.id"],
-		"auto.offset.reset": kafkaConfig["auto.offset.reset"],
-		"enable.auto.commit": kafkaConfig["enable.auto.commit"],
-	})
+	// Create Kafka config map with all consumer settings
+	configMap := &kafka.ConfigMap{}
+	for key, value := range kafkaConfig {
+		configMap.SetKey(key, value)
+	}
+
+	consumer, err := kafka.NewConsumer(configMap)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create consumer: %w", err)
 	}
@@ -87,7 +88,8 @@ func (c *Consumer) Start(ctx context.Context) error {
 		default:
 			msg, err := c.consumer.ReadMessage(100 * time.Millisecond)
 			if err != nil {
-				if err.(kafka.Error).Code() == kafka.ErrTimedOut {
+				// Safe type assertion - check if it's a Kafka error
+				if kafkaErr, ok := err.(kafka.Error); ok && kafkaErr.Code() == kafka.ErrTimedOut {
 					continue
 				}
 				c.logger.Error("failed to read message", "error", err)
@@ -117,26 +119,31 @@ func (c *Consumer) Start(ctx context.Context) error {
 func (c *Consumer) processMessage(ctx context.Context, msg *kafka.Message) error {
 	start := time.Now()
 
+	// Extract trace context from Kafka headers using OpenTelemetry propagator
+	propagator := otel.GetTextMapPropagator()
+	ctx = propagator.Extract(ctx, &kafkaHeaderCarrier{headers: msg.Headers})
+
 	// Deserialize event
 	var event Event
 	if err := json.Unmarshal(msg.Value, &event); err != nil {
 		return fmt.Errorf("failed to unmarshal event: %w", err)
 	}
 
-	// Extract trace context from headers
-	for _, header := range msg.Headers {
-		if header.Key == "trace_id" {
-			// Add trace context to ctx if needed
-		}
+	// Add Kafka metadata to event for downstream handlers (especially DLQ)
+	if event.Metadata == nil {
+		event.Metadata = make(map[string]string)
 	}
+	event.Metadata["_kafka_topic"] = *msg.TopicPartition.Topic
+	event.Metadata["_kafka_partition"] = fmt.Sprintf("%d", msg.TopicPartition.Partition)
+	event.Metadata["_kafka_offset"] = fmt.Sprintf("%d", msg.TopicPartition.Offset)
 
-	// Call handler
+	// Call handler with enriched context
 	if err := c.handler(ctx, &event); err != nil {
 		return fmt.Errorf("handler error: %w", err)
 	}
 
 	duration := time.Since(start)
-	c.logger.Debug("event processed",
+	c.logger.DebugContext(ctx, "event processed",
 		"topic", *msg.TopicPartition.Topic,
 		"partition", msg.TopicPartition.Partition,
 		"offset", msg.TopicPartition.Offset,
@@ -144,6 +151,33 @@ func (c *Consumer) processMessage(ctx context.Context, msg *kafka.Message) error
 	)
 
 	return nil
+}
+
+// kafkaHeaderCarrier implements propagation.TextMapCarrier for Kafka headers
+type kafkaHeaderCarrier struct {
+	headers []kafka.Header
+}
+
+func (c *kafkaHeaderCarrier) Get(key string) string {
+	for _, h := range c.headers {
+		if h.Key == key {
+			return string(h.Value)
+		}
+	}
+	return ""
+}
+
+func (c *kafkaHeaderCarrier) Set(key string, value string) {
+	// For extraction, we don't need to implement Set
+	// This would be used for injection (which we do in the producer)
+}
+
+func (c *kafkaHeaderCarrier) Keys() []string {
+	keys := make([]string, len(c.headers))
+	for i, h := range c.headers {
+		keys[i] = h.Key
+	}
+	return keys
 }
 
 // Stop stops the consumer
