@@ -1,401 +1,174 @@
-# DictaMesh Courthouse Documentation
-## Infrastructure, Database & Software Architecture Analysis
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2025 Controle Digital Ltda
 
-**Analysis Date:** 2025-11-08
-**Branch:** develop
-**Review Type:** Comprehensive Technical Assessment
-**Conducted By:** Senior Infrastructure, Database & Software Architect
+# DictaMesh Courthouse - Code Compliance System
 
----
+The DictaMesh Courthouse is an automated compliance review system that enforces code quality policies through AI agent collaboration (A2A - Agent-to-Agent protocols).
 
-## 🎯 Purpose
+## Overview
 
-This **courthouse documentation** provides a complete technical assessment of the DictaMesh framework from an infrastructure, database, and software architecture perspective. These reports are designed for:
+The Courthouse system consists of:
 
-- **Technical Leaders** - Understanding system architecture and implementation status
-- **Infrastructure Teams** - Deployment planning and operations
-- **Database Administrators** - Schema management and optimization
-- **Development Teams** - Understanding code structure and patterns
-- **Project Managers** - Progress tracking and planning
-- **LLM Agents** - Structured context for code generation and analysis
+- **Judge Agents**: AI agents that review code for compliance with framework policies
+- **A2A Protocols**: Standardized communication protocols between agents
+- **Enforcement Tools**: Pre-commit hooks, CI/CD integrations, and IDE extensions
+- **Exception Management**: Process for handling temporary policy exceptions
 
----
+## Purpose
 
-## 📚 Documentation Structure
+Ensure all DictaMesh framework code adheres to:
 
-### Core Analysis Reports
+1. **File Size Limits**: Max 500 lines, preferred 350 lines
+2. **Code Reusability**: DRY principles, no duplication
+3. **Dependency Management**: Use of appropriate external libraries
+4. **Code Organization**: Clear structure and naming conventions
+5. **Function Size**: Max 50 lines per function
 
-| Report | Focus | Audience | Status |
-|--------|-------|----------|--------|
-| [00-INDEX.md](00-INDEX.md) | Master index & executive summary | All | ✅ Complete |
-| [01-INFRASTRUCTURE-ANALYSIS.md](01-INFRASTRUCTURE-ANALYSIS.md) | Docker, K8s, monitoring stack | Infrastructure | ✅ Complete |
-| [02-DATABASE-ARCHITECTURE.md](02-DATABASE-ARCHITECTURE.md) | Schema, migrations, repositories | Database | ✅ Complete |
+See [AGENT.md](../../AGENT.md) for complete policy details.
 
-### Planned Reports
+## Directory Structure
 
-| Report | Focus | Status |
-|--------|-------|--------|
-| 03-APPLICATION-MODULES.md | pkg/* packages analysis | 🔴 Planned |
-| 04-SERVICES-ARCHITECTURE.md | Services implementation | 🔴 Planned |
-| 05-INTEGRATION-APIS.md | Events, GraphQL, APIs | 🔴 Planned |
-| 06-DEPLOYMENT-OPERATIONS.md | K8s, Helm, CI/CD | 🔴 Planned |
-| 07-WEBSITE-TOOLS.md | Website, CLI, codegen | 🔴 Planned |
-| 08-ROADMAP-STATUS.md | Timeline, milestones | 🔴 Planned |
-| 09-SECURITY-GOVERNANCE.md | Security, compliance | 🔴 Planned |
-| 10-RECOMMENDATIONS.md | Technical debt, improvements | 🔴 Planned |
-
----
-
-## 🔍 Key Findings Summary
-
-### Overall Assessment
-
-**Project Maturity:** Pre-Alpha (v0.1.0)
-**Overall Progress:** ~35% Complete
-**Code Quality:** High (well-structured)
-**Documentation:** Excellent (comprehensive planning)
-
-### Status by Component
-
-✅ **Production-Ready (100%):**
-- Development infrastructure (Docker Compose)
-- Database schema and migrations
-- Database package implementation
-- Notifications package foundation
-- Observability package (complete)
-- Events package (Kafka integration)
-- Adapter package (base implementation)
-- Monitoring stack (Prometheus, Grafana, Jaeger)
-
-🟡 **In Progress (30-70%):**
-- Kubernetes manifests (30%)
-- Gateway package (infrastructure only)
-- Governance package (planning only)
-
-🔴 **Not Started (0%):**
-- Services implementation (metadata-catalog, graphql-gateway, event-router)
-- Helm charts
-- CI/CD pipelines
-- Testing infrastructure
-- Production security hardening
-- Example adapter implementations
-
----
-
-## 📊 Quick Statistics
-
-### Code Metrics
-```yaml
-Total Go Files: 27
-Total Go Code: ~4,567 lines
-Documentation: ~6,195 lines (planning)
-Tests: 0 (0% coverage)
+```
+docs/courthouse/
+├── README.md                           # This file
+├── agents/                            # Judge agent definitions
+│   ├── code-compliance-judge.md       # Main compliance judge (A2A protocol)
+│   └── [future-agents].md             # Additional specialized judges
+├── templates/                         # Templates for compliance workflow
+│   ├── exception-request.yml          # Request exception to policy
+│   └── compliance-report.md           # Report template
+├── guides/                            # Implementation guides
+│   ├── integration-guide.md           # How to integrate compliance checks
+│   ├── code-splitting.md              # Patterns for splitting large files
+│   └── refactoring-patterns.md        # Best practices for refactoring
+└── examples/                          # Example compliance scenarios
+    ├── pre-commit-hook.sh             # Git hook example
+    └── github-action.yml              # CI/CD example
 ```
 
-### Infrastructure
-```yaml
-Docker Services: 7/7 operational
-- PostgreSQL 16
-- Redis 7
-- Redpanda (3 brokers)
-- Prometheus
-- Grafana
-- Jaeger
-- Sentry
+## Quick Start
 
-Kubernetes: 30% complete
-Helm Charts: 0% (not started)
-CI/CD: 0% (not started)
+### For Developers
+
+**Before committing code:**
+
+```bash
+# Check compliance of specific file
+@compliance-judge review pkg/services/user_service.go
+
+# Check all staged files
+@compliance-judge review --scope=staged
+
+# Run strict check (no warnings allowed)
+@compliance-judge review --scope=staged --strict
 ```
 
-### Database
-```yaml
-Tables: 6 core tables
-Indexes: 20+ indexes
-Migrations: 3 versions
-Extensions: 3 (uuid-ossp, pg_trgm, pgvector)
-Features: Vector search, caching, audit logging
+**File size check:**
+
+```bash
+# Quick check: count code lines (excludes headers, imports, blanks)
+wc -l pkg/services/user_service.go
+# If over 350 lines, consider refactoring
+# If over 500 lines, MUST refactor before commit
 ```
 
-### Packages (pkg/)
-```yaml
-✅ database/       - 100% (production-ready)
-✅ notifications/  - 100% (types + models)
-✅ observability/  - 100% (tracing, metrics, logging)
-✅ events/         - 100% (Kafka producer/consumer)
-✅ adapter/        - 100% (base implementation)
-🟡 gateway/        - 0% (planned)
-🟡 governance/     - 0% (planned)
-🔴 catalog/        - 0% (database-dependent)
-🔴 saga/           - 0% (advanced feature)
+### For Repository Admins
+
+**Install pre-commit hook:**
+
+```bash
+cp docs/courthouse/examples/pre-commit-hook.sh .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
 ```
 
----
+**Add CI/CD check:**
 
-## 🎯 Critical Path to MVP
+See \`docs/courthouse/examples/github-action.yml\`
 
-### Phase 1: Complete Core Framework (Weeks 1-2)
-**Status:** 🟡 70% Complete
+## Judge Agents
 
-**Remaining Tasks:**
-- [ ] Implement gateway package (GraphQL federation infrastructure)
-- [ ] Implement governance package (access control, PII tracking)
-- [ ] Add basic unit tests (target 50%+ coverage)
-- [ ] Document all package APIs
+### Code Compliance Judge
 
-### Phase 2: First Service (Weeks 3-4)
-**Status:** 🔴 Not Started
+**Agent ID**: \`compliance-judge-001\`
+**Status**: Active
+**Version**: 1.0.0
 
-**Tasks:**
-- [ ] Implement metadata-catalog service
-- [ ] Create REST API endpoints
-- [ ] Integrate with database package
-- [ ] Add integration tests
+**Responsibilities**:
+- Enforce file size limits
+- Detect code duplication
+- Validate dependency usage
+- Check code organization
+- Monitor function complexity
 
-### Phase 3: GraphQL Gateway (Weeks 5-6)
-**Status:** 🔴 Not Started
+**Full Protocol**: [agents/code-compliance-judge.md](agents/code-compliance-judge.md)
 
-**Tasks:**
-- [ ] Implement graphql-gateway service
-- [ ] Set up Apollo Federation
-- [ ] Add DataLoader for batching
-- [ ] Create example subgraphs
+### Future Judges (Planned)
 
-### Phase 4: Example Adapter (Weeks 7-8)
-**Status:** 🔴 Not Started
+- **Security Compliance Judge**: Check for security vulnerabilities
+- **Performance Compliance Judge**: Identify performance anti-patterns
+- **API Compliance Judge**: Validate API design standards
+- **Documentation Compliance Judge**: Ensure adequate documentation
 
-**Tasks:**
-- [ ] Build reference REST adapter
-- [ ] Demonstrate full integration
-- [ ] Add comprehensive documentation
-- [ ] Create tutorial
+## A2A Protocol
 
-### Phase 5: Production Readiness (Weeks 9-12)
-**Status:** 🔴 Not Started
+Agents communicate using structured JSON protocol:
 
-**Tasks:**
-- [ ] Complete Helm charts
-- [ ] Implement CI/CD pipelines
-- [ ] Add comprehensive tests (80%+ coverage)
-- [ ] Security hardening
-- [ ] Performance optimization
+```json
+{
+  "protocol": "A2A-Compliance-Review",
+  "version": "1.0",
+  "request_id": "unique-id",
+  "requesting_agent": "agent-identifier",
+  "review_type": "pre-commit|pre-pr|full-audit",
+  "scope": {
+    "files": ["file1.go", "file2.js"]
+  }
+}
+```
 
----
+See individual agent documentation for complete protocol specifications.
 
-## 💡 Strategic Recommendations
+## Exception Process
 
-### Immediate Actions (This Week)
+If you need to temporarily violate a policy:
 
-1. **Complete Core Packages**
-   - Priority: Gateway and Governance packages
-   - Timeline: 3-5 days
-   - Owner: Framework team
+1. **Create exception request**: Use template from \`templates/exception-request.yml\`
+2. **Justify necessity**: Explain why exception is needed
+3. **Provide refactoring plan**: Timeline to resolve issue
+4. **Get approval**: Tech lead review required
+5. **Set expiration**: Max 2 sprint cycles
+6. **Track progress**: Link to refactoring tickets
 
-2. **Basic Testing Infrastructure**
-   - Add unit test framework
-   - Create integration test helpers
-   - Target: 50%+ coverage
-   - Timeline: 2-3 days
+**Exception file location**: \`.compliance-exceptions/\`
 
-3. **Documentation Updates**
-   - Add package godocs
-   - Create usage examples
-   - Update IMPLEMENTATION-STATUS.md
-   - Timeline: 1-2 days
+## Compliance Metrics
 
-### Short Term (Month 1)
+The Courthouse system tracks:
 
-1. **Services Implementation**
-   - Start with metadata-catalog service
-   - Then graphql-gateway service
-   - Add event-router service
-   - Timeline: 3-4 weeks
+- **Compliance Score**: Overall project health (0-100)
+- **Violation Trends**: Improving/degrading over time
+- **File Size Distribution**: How many files near limits
+- **Code Duplication**: Percentage of duplicated code
+- **Dependency Health**: Outdated/vulnerable packages
 
-2. **Helm Charts**
-   - Create infrastructure charts
-   - Create service charts
-   - Create umbrella chart
-   - Timeline: 1-2 weeks
+## Severity Levels
 
-3. **CI/CD Pipeline**
-   - GitHub Actions for build/test
-   - Docker image automation
-   - Security scanning
-   - Timeline: 1 week
+| Level | Status | Blocking | Action |
+|-------|--------|----------|--------|
+| 0 | PASS | No | None |
+| 1 | WARNING | No | Fix in next sprint |
+| 2 | VIOLATION | No* | Mandatory fix |
+| 3 | CRITICAL | Yes | Immediate fix required |
 
-### Medium Term (Months 2-3)
+*Blocks new features but not current PR if documented
 
-1. **Example Implementations**
-   - Reference adapters
-   - Integration examples
-   - Best practices guide
-   - Timeline: 2-3 weeks
+## Resources
 
-2. **Production Kubernetes**
-   - Complete K8s manifests
-   - Networking and security
-   - Monitoring and alerting
-   - Timeline: 3-4 weeks
-
-3. **Testing & Quality**
-   - 80%+ test coverage
-   - Load testing
-   - Security audit
-   - Timeline: 2-3 weeks
+- [AGENT.md](../../AGENT.md) - Full policy specification
+- [Code Compliance Judge Protocol](agents/code-compliance-judge.md)
 
 ---
 
-## 📖 How to Use This Documentation
-
-### For New Team Members
-
-1. Start with [00-INDEX.md](00-INDEX.md) for overview
-2. Read [01-INFRASTRUCTURE-ANALYSIS.md](01-INFRASTRUCTURE-ANALYSIS.md) to understand the stack
-3. Study [02-DATABASE-ARCHITECTURE.md](02-DATABASE-ARCHITECTURE.md) for data model
-4. Review IMPLEMENTATION-STATUS.md for current state
-
-### For Infrastructure Teams
-
-1. Focus on [01-INFRASTRUCTURE-ANALYSIS.md](01-INFRASTRUCTURE-ANALYSIS.md)
-2. Review Docker Compose setup
-3. Check K8s readiness gaps
-4. Plan production deployment
-
-### For Database Teams
-
-1. Review [02-DATABASE-ARCHITECTURE.md](02-DATABASE-ARCHITECTURE.md)
-2. Understand schema and migrations
-3. Plan performance optimization
-4. Review backup/recovery strategy
-
-### For Development Teams
-
-1. Study package structure in docs
-2. Review coding standards in AGENT.md
-3. Check IMPLEMENTATION-STATUS.md for tasks
-4. Follow contribution guidelines
-
-### For LLM Agents
-
-1. Read all courthouse documentation for context
-2. Cross-reference with planning docs (docs/planning/)
-3. Use for code generation context
-4. Update after significant changes
-
----
-
-## 🔄 Maintenance
-
-### Update Schedule
-
-- **Weekly:** After major feature completions
-- **Monthly:** Full review and metrics update
-- **Quarterly:** Strategic assessment
-
-### Update Process
-
-1. Review implementation changes
-2. Update metrics and statistics
-3. Revise recommendations
-4. Update status indicators
-5. Commit changes to version control
-
-### Document Owners
-
-- **Infrastructure Reports:** Infrastructure Team
-- **Database Reports:** Database Team
-- **Application Reports:** Development Team
-- **Overall Coordination:** Architecture Team
-
----
-
-## 📈 Success Criteria
-
-### Documentation Goals
-
-- ✅ Comprehensive coverage of all components
-- ✅ Clear status indicators
-- ✅ Actionable recommendations
-- ✅ Regular updates (post-milestone)
-- ⏳ Complete all planned reports
-- ⏳ Metrics dashboard
-- ⏳ API catalog
-
-### Project Goals (for tracking)
-
-- 🔴 Core framework: 100% complete
-- 🔴 Services: 100% implemented
-- 🔴 Tests: 80%+ coverage
-- 🔴 Production: K8s + Helm ready
-- 🔴 Documentation: API docs + guides
-- 🔴 Security: Audit passed
-- 🔴 Performance: Benchmarks met
-
----
-
-## 🔗 Related Documentation
-
-### Project Root
-- [../../PROJECT-SCOPE.md](../../PROJECT-SCOPE.md) - Framework specification
-- [../../IMPLEMENTATION-STATUS.md](../../IMPLEMENTATION-STATUS.md) - Current implementation status
-- [../../README.md](../../README.md) - Project overview
-- [../../AGENT.md](../../AGENT.md) - Development guidelines
-
-### Planning Documentation
-- [../planning/](../planning/) - Detailed implementation guides (19 documents)
-- [../planning/00-INDEX.md](../planning/00-INDEX.md) - Planning documentation index
-
-### Infrastructure
-- [../../infrastructure/README.md](../../infrastructure/README.md) - Infrastructure setup guide
-- [../../infrastructure/docker-compose/](../../infrastructure/docker-compose/) - Docker Compose configs
-
-### Packages
-- [../../pkg/database/README.md](../../pkg/database/README.md) - Database package
-- [../../pkg/notifications/README.md](../../pkg/notifications/README.md) - Notifications package
-- [../../pkg/observability/README.md](../../pkg/observability/README.md) - Observability package
-
----
-
-## 📞 Questions & Feedback
-
-For questions or suggestions about this documentation:
-
-1. **GitHub Issues:** Open an issue with tags `documentation`, `courthouse`
-2. **Team Channels:** Discuss in relevant team channels
-3. **Pull Requests:** Submit improvements via PR
-
-For implementation questions:
-1. Check IMPLEMENTATION-STATUS.md first
-2. Review relevant planning docs
-3. Consult package README files
-
----
-
-## 📝 Document History
-
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 1.0.0 | 2025-11-08 | Initial courthouse documentation | Architecture Team |
-| | | - Created master index | |
-| | | - Infrastructure analysis complete | |
-| | | - Database architecture complete | |
-| | | - README and structure | |
-
-**Next Update:** After Phase 1 completion
-
----
-
-## ⚖️ License & Copyright
-
-**SPDX-License-Identifier:** AGPL-3.0-or-later
-**Copyright:** (C) 2025 Controle Digital Ltda
-
-This documentation is part of the DictaMesh framework project, licensed under the GNU Affero General Public License v3.0 or later. See [LICENSE](../../LICENSE) file for details.
-
----
-
-**Document Version:** 1.0.0
-**Last Updated:** 2025-11-08
-**Maintained By:** DictaMesh Architecture Team
-**Format:** Markdown
-**Location:** `docs/courthouse/`
+**System Status**: Active
+**Maintained By**: DictaMesh Architecture Team
+**Last Updated**: 2025-11-08

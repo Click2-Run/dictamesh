@@ -1,0 +1,202 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2025 Controle Digital Ltda
+
+# Code Compliance Exception Request
+# 
+# Use this template to request a temporary exception to DictaMesh code quality policies.
+# Save to: .compliance-exceptions/<descriptive-name>.yml
+
+# EXCEPTION METADATA
+exception_id: EXC-YYYY-NNN  # Format: EXC-<year>-<sequence>
+request_date: YYYY-MM-DD
+requested_by: 
+  name: Developer Name
+  email: developer@example.com
+  team: team-name
+
+# FILE/SCOPE INFORMATION
+scope:
+  type: file  # file | directory | package
+  path: pkg/services/example_service.go  # Relative to project root
+  files:  # If type=directory or package
+    - file1.go
+    - file2.go
+
+# POLICY VIOLATION DETAILS
+violation:
+  rule: MANDATORY_FILE_SIZE_LIMITS  # See AGENT.md for rule names
+  policy_section: "Code Quality & Structure Policy > MANDATORY FILE SIZE LIMITS"
+  
+  current_state:
+    metric: lines_of_code
+    actual_value: 587
+    threshold_value: 500
+    preferred_value: 350
+    
+  severity: 3  # 1=WARNING, 2=VIOLATION, 3=CRITICAL
+  
+  description: |
+    Brief description of the current state and why it violates policy.
+    For example:
+    "The user_service.go file contains 587 lines of code, exceeding the 
+    hard limit of 500 lines. The file handles user CRUD operations, 
+    authentication, profile management, and preferences."
+
+# JUSTIFICATION
+justification:
+  business_reason: |
+    Explain the business or technical reason why this exception is needed.
+    For example:
+    "The user service contains tightly coupled authentication state that 
+    makes splitting complex. Immediate splitting would introduce circular 
+    dependencies and break existing functionality in production."
+  
+  technical_constraints: |
+    List technical constraints preventing immediate compliance.
+    For example:
+    "- Authentication state shared across all user operations
+     - Database transaction boundaries span multiple functions
+     - Legacy API contracts require specific function signatures"
+  
+  risk_assessment: |
+    What are the risks of granting this exception?
+    For example:
+    "Low risk - file is well-tested and stable. Main risk is increased 
+    maintenance burden and difficulty onboarding new developers."
+  
+  alternatives_considered:
+    - option: "Quick vertical split by feature"
+      rejected_because: "Would create circular dependencies"
+    - option: "Defer to next major version"
+      rejected_because: "Too long - need to ship features now"
+    - option: "Rewrite using event-driven architecture"
+      rejected_because: "Chosen - but needs time to implement properly"
+
+# REMEDIATION PLAN
+remediation:
+  strategy: "Migrate to event-driven user service architecture"
+  
+  timeline:
+    - milestone: "Extract authentication to separate service"
+      sprint: 23
+      due_date: 2025-11-30
+      assigned_to: backend-team
+      deliverables:
+        - "New auth_service.go (<300 lines)"
+        - "Auth event publisher"
+        - "Migration guide"
+    
+    - milestone: "Migrate user updates to event handlers"
+      sprint: 24
+      due_date: 2025-12-15
+      assigned_to: backend-team
+      deliverables:
+        - "Event-driven user updates"
+        - "Remove 200 lines from user_service.go"
+    
+    - milestone: "Complete refactoring"
+      sprint: 25
+      due_date: 2025-12-30
+      assigned_to: backend-team
+      deliverables:
+        - "user_service.go under 350 lines"
+        - "All tests passing"
+        - "Close exception"
+  
+  success_criteria:
+    - "user_service.go reduced to <350 lines"
+    - "No circular dependencies introduced"
+    - "All existing tests pass"
+    - "Code coverage maintained >80%"
+    - "No breaking API changes"
+  
+  tracking:
+    project_board: "https://github.com/org/project/projects/5"
+    epic_ticket: "DICT-1234"
+    related_tickets:
+      - DICT-1235: "Extract auth service"
+      - DICT-1236: "Event-driven user updates"
+      - DICT-1237: "Refactor user preferences"
+
+# EXCEPTION TERMS
+terms:
+  status: pending  # pending | approved | rejected | expired | closed
+  
+  approval:
+    required_approvers:
+      - tech-lead
+      - architect
+    approved_by: []  # Filled by approvers
+    approval_date: null
+  
+  conditions:
+    - "No new features added to user_service.go during exception period"
+    - "All new code in file requires inline justification comment"
+    - "Monthly progress review with tech lead"
+    - "Exception auto-expires if timeline not met"
+  
+  duration:
+    granted_date: null  # Filled on approval
+    expires_date: null  # Max 2 sprint cycles from approval
+    max_duration_sprints: 2
+    renewable: false  # Cannot be extended
+  
+  monitoring:
+    compliance_check_frequency: weekly
+    alert_on_file_changes: true
+    require_change_justification: true
+    auto_expire_on_timeline_miss: true
+
+# STAKEHOLDER SIGN-OFF
+sign_off:
+  requested_by:
+    name: Developer Name
+    signature: null
+    date: null
+  
+  tech_lead:
+    name: null
+    signature: null
+    date: null
+    comments: null
+  
+  architect:
+    name: null
+    signature: null
+    date: null
+    comments: null
+
+# COMPLIANCE JUDGE REVIEW
+judge_review:
+  agent_id: compliance-judge-001
+  review_date: null
+  recommendation: null  # approve | reject | conditional
+  conditions: []
+  comments: null
+
+# AUDIT TRAIL
+audit:
+  - timestamp: YYYY-MM-DD HH:MM:SS
+    action: created
+    actor: developer-name
+    notes: "Exception request created"
+  
+  # Add entries as exception progresses
+  # - timestamp: YYYY-MM-DD HH:MM:SS
+  #   action: approved | rejected | milestone_completed | expired
+  #   actor: approver-name
+  #   notes: "Comments"
+
+# REFERENCE LINKS
+references:
+  policy: "../../AGENT.md#code-quality--structure-policy"
+  splitting_guide: "../guides/code-splitting.md"
+  refactoring_patterns: "../guides/refactoring-patterns.md"
+
+# NOTES
+notes: |
+  Additional notes, context, or information relevant to this exception request.
+  
+  Example:
+  "This exception is necessary to maintain velocity on Q4 deliverables.
+  The refactoring is planned as part of technical debt sprint in Q1."
