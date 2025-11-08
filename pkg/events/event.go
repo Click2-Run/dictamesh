@@ -5,6 +5,8 @@ package events
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // Event represents a generic event in the DictaMesh framework
@@ -94,18 +96,7 @@ func (e *Event) WithMetadata(key, value string) *Event {
 	return e
 }
 
-// generateEventID generates a unique event ID
-// In a real implementation, this would use UUID
+// generateEventID generates a unique event ID using UUID v4
 func generateEventID() string {
-	return time.Now().Format("20060102150405") + "-" + randString(8)
-}
-
-// randString generates a random string (simplified for now)
-func randString(n int) string {
-	const letters = "abcdefghijklmnopqrstuvwxyz0123456789"
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letters[time.Now().UnixNano()%int64(len(letters))]
-	}
-	return string(b)
+	return uuid.New().String()
 }
