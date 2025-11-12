@@ -6,6 +6,7 @@ go 1.21
 use (
 	// Framework core packages
 	./pkg/adapter
+	./pkg/adapter/kubernetes
 	./pkg/catalog
 	./pkg/events
 	./pkg/gateway
